@@ -1,0 +1,61 @@
+<!doctype html>
+<title> House Spending Tracker </title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='skeleton.css') }}">
+
+<a class="button" href="{{ url_for('add_entry') }}">Add an Item</a>
+
+
+
+<h2> Current Totals </h2>
+<table class="u-full-width">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for name in db.keys() %}
+        <tr>
+            <td> {{ name }} </td>
+            <td> ${{ db[name].get('total') }} </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<h2> Item List</h2>
+<table class="u-full-width">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Item</th>
+            <th>Price</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for name in db.keys() %}
+        {% for item in db[name].get('items')%}
+        <tr>
+            <td> {{ name }} </td>
+            {% for k, v in item.items() %}
+            <td> {{ k }} </td>
+            <td> ${{ v }} </td>
+            <td>
+                <form action="{{ url_for('delete') }}" method="post">
+                    <input type="hidden" name="name" value="{{name}}">
+                    <input type="hidden" name="item" value="{{k}}">
+                    <input type="hidden" name="price" value="{{v}}">
+                    <input class="button" type="submit" value="Delete">
+                </form>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>

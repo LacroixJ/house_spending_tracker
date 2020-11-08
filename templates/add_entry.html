@@ -1,0 +1,24 @@
+<!doctype html>
+<title> House Spending Tracker </title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='skeleton.css') }}">
+
+
+<h1> Add an entry </h1>
+
+<form action="{{ url_for('add_entry') }}" method="post">
+    <label for="name">Choose your name</label>
+    <select id="name" name="name">
+        {% for name in names %}
+        <option>{{name}}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <label for="item">What did you buy?</label>
+    <input type="text" id="item" name="item" required />
+    <label for="price">How much did it cost?</label>
+    <input inputmode="numeric" type="number" id="price" name="price" step="0.01" required />
+    <br>
+    <input class="button-primary" type="submit" value="Submit">
+</form>
