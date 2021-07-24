@@ -4,7 +4,23 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='skeleton.css') }}">
 
-<a class="button" href="{{ url_for('add_entry') }}">Add an Item</a>
+<style type="text/css">
+  body {
+   margin: 0.5em;
+   margin-left: 0.7em;
+  }
+  #delete_button{
+      margin: auto;
+      height: 20px;
+      padding: 5px;
+      line-height: 0px;
+  }
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=0.85">
+
+
+<a class="button button-primary" href="{{ url_for('add_entry') }}">Add an Item</a>
 
 
 
@@ -20,7 +36,7 @@
         {% for name in db.keys() %}
         <tr>
             <td> {{ name }} </td>
-            <td> ${{ db[name].get('total') }} </td>
+            <td> {{ "$%.2f" | format(db[name].get('total')) }} </td>
         </tr>
         {% endfor %}
     </tbody>
@@ -28,32 +44,36 @@
 
 
 <h2> Item List</h2>
-<table class="u-full-width">
+<table class="u-full-width" id="ptable">
     <thead>
         <tr>
             <th>Name</th>
             <th>Item</th>
             <th>Price</th>
+            <th>Date Added</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         {% for name in db.keys() %}
-        {% for item in db[name].get('items')%}
+        {% for purchase in db[name].get('purchases')%}
+        {% set details = purchase['purchase'] %}
         <tr>
             <td> {{ name }} </td>
-            {% for k, v in item.items() %}
-            <td> {{ k }} </td>
-            <td> ${{ v }} </td>
+            <td> {{ details['name'] }} </td>
+            <td> {{ "$%.2f" | format(details['price']) }} </td>
+            <td> {{ details['date_added'].strftime("%Y-%m-%d") }} </td>
             <td>
                 <form action="{{ url_for('delete') }}" method="post">
                     <input type="hidden" name="name" value="{{name}}">
-                    <input type="hidden" name="item" value="{{k}}">
-                    <input type="hidden" name="price" value="{{v}}">
-                    <input class="button" type="submit" value="Delete">
+                    <input type="hidden" name="item_name" value="{{details['name']}}">
+                    <input type="hidden" name="price" value="{{details['price']}}">
+                    <input type="hidden" type='datetime-local' name="date_added"
+                        value="{{details['date_added']}}">
+                    <input class="button" type="submit" id="delete_button"
+                        onclick="return confirm('Are you sure you want to delete this item?');"value="Delete">
                 </form>
             </td>
-            {% endfor %}
         </tr>
         {% endfor %}
         {% endfor %}

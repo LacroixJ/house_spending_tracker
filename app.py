@@ -5,6 +5,8 @@ from flask import render_template, request, redirect, url_for, Flask
 import os.path
 import yaml
 
+from datetime import datetime
+
 
 app = Flask(__name__)
 
@@ -18,8 +20,6 @@ def load_db():
     return info
 
 
-
-
 @app.route('/', methods=['GET'])
 def homepage():
     if not os.path.isfile(DB):
@@ -30,9 +30,15 @@ def homepage():
 
     names = info.keys()
 
+
     for name in info.keys():
-        items = info[name].get('items')
-        total = sum([list(item.values())[0] for item in items])
+        purchases = info[name].get('purchases')
+
+        total = 0
+        for purchase in purchases:
+            details = purchase['purchase']
+            total += float(details['price'])
+
         info[name]['total'] = total
 
 
@@ -46,7 +52,15 @@ def add_entry():
     names = info.keys()
     if request.method == 'POST':
         f = request.form
-        info[f['name']]['items'].append({f['item']:float(f['price'])})
+        purchase = {
+                'purchase':
+                    {
+                    'name': f['item_name'],
+                    'price': float(f['price']),
+                    'date_added': datetime.now()
+                    }
+                }
+        info[f['name']]['purchases'].append(purchase)
         db = open(DB, 'w')
         yaml.dump(info, db)
         db.close()
@@ -60,19 +74,19 @@ def delete():
     info = load_db()
     f = request.form
 
-    items = info[f['name']]['items']
+    purchases = info[f['name']]['purchases']
 
-    found = False
-    for idx, item in enumerate(list(items)):
-        for k, v in item.items():
-            if k == f['item'] and v == float(f['price']):
-                items.remove(item)
-                found = True
-        if found: break
+    for purchase in purchases.copy():
+        details = purchase['purchase']
+        requirements = [
+                details['name'] == f['item_name'],
+                details['price'] == float(f['price']),
+                ]
+        if all(requirements):
+            purchases.remove(purchase)
+            break
 
-
-
-    info[f['name']]['items'] = items
+    info[f['name']]['purchases'] = purchases
 
     db = open(DB, 'w')
     yaml.dump(info, db)

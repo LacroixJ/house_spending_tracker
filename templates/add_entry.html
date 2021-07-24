@@ -1,9 +1,18 @@
 <!doctype html>
 <title> House Spending Tracker </title>
 
+
 <link rel="stylesheet" href="{{ url_for('static', filename='normalize.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='skeleton.css') }}">
 
+<style type="text/css">
+  body {
+   margin: 0.5em;
+   margin-left: 0.7em;
+  }
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <h1> Add an entry </h1>
 
@@ -16,7 +25,7 @@
     </select>
     <br>
     <label for="item">What did you buy?</label>
-    <input type="text" id="item" name="item" required />
+    <input type="text" id="item_name" name="item_name" required />
     <label for="price">How much did it cost?</label>
     <input inputmode="numeric" type="number" id="price" name="price" step="0.01" required />
     <br>

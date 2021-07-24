@@ -1,9 +1,18 @@
 User 1:
-  items:
-  - Dish Rack: 30.0
+  purchases:
+  - purchase:
+      date_added: 2021-03-22 00:00:00
+      name: Dish Rack
+      price: 30.0
 User 2:
-  items:
-  - compost bags: 10
+  purchases:
+  - purchase:
+      date_added: 2021-05-02 00:00:00
+      name: compost bags
+      price: 10
 User 3:
-  items:
-  - mop: 30
+  purchases:
+  - purchase:
+      date_added: 2021-02-16 00:00:00
+      name: mop
+      price: 30
