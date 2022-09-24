@@ -1,97 +1,55 @@
 #!/usr/bin/env python3
-
-
 from flask import render_template, request, redirect, url_for, Flask
 import os.path
-import yaml
+import sqlite3
 
 from datetime import datetime
 
-
 app = Flask(__name__)
 
-DB = 'db.yaml'
+DB = 'db.db'
 
-def load_db():
-    db = open(DB, 'r')
-    info = yaml.safe_load(db)
-    db.close()
-
-    return info
-
+def get_users():
+    with sqlite3.connect(DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute('select distinct username from usernames;')
+        data = [t[0] for t in cursor.fetchall()]
+        return data
 
 @app.route('/', methods=['GET'])
 def homepage():
-    if not os.path.isfile(DB):
-        file = open(DB, 'w')
-        file.close()
+    with sqlite3.connect(DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute('select *, ROWID from purchases order by -date(entrydate), -ROWID;')
 
-    info = load_db()
+        purchases = cursor.fetchall();
 
-    names = info.keys()
+        totals = cursor.execute('select username, sum(price) from purchases group by username;')
 
+        totals = cursor.fetchall()
 
-    for name in info.keys():
-        purchases = info[name].get('purchases')
-
-        total = 0
-        for purchase in purchases:
-            details = purchase['purchase']
-            total += float(details['price'])
-
-        info[name]['total'] = total
-
-
-
-    return render_template('home.html', db=info)
+        return render_template('home.html', purchases=purchases, totals=totals)
 
 
 @app.route('/add_entry/', methods=['GET', 'POST'])
 def add_entry():
-    info = load_db()
-    names = info.keys()
     if request.method == 'POST':
         f = request.form
-        purchase = {
-                'purchase':
-                    {
-                    'name': f['item_name'],
-                    'price': float(f['price']),
-                    'date_added': datetime.now()
-                    }
-                }
-        info[f['name']]['purchases'].append(purchase)
-        db = open(DB, 'w')
-        yaml.dump(info, db)
-        db.close()
+        with sqlite3.connect(DB) as conn:
+            cursor = conn.cursor()
+            cursor.execute('insert into purchases values(?, ?, ?, ?)',
+                    (f['name'], f['item_name'], float(f['price']), datetime.now().date()))
+            conn.commit()
         return redirect(url_for('homepage'))
-    return render_template('add_entry.html', names=names)
-
-
+    return render_template('add_entry.html', names=get_users())
 
 @app.route('/delete/', methods=['POST'])
 def delete():
-    info = load_db()
     f = request.form
-
-    purchases = info[f['name']]['purchases']
-
-    for purchase in purchases.copy():
-        details = purchase['purchase']
-        requirements = [
-                details['name'] == f['item_name'],
-                details['price'] == float(f['price']),
-                ]
-        if all(requirements):
-            purchases.remove(purchase)
-            break
-
-    info[f['name']]['purchases'] = purchases
-
-    db = open(DB, 'w')
-    yaml.dump(info, db)
-    db.close()
-
+    with sqlite3.connect(DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE from purchases where ROWID=?;', f['ROWID'])
+        conn.commit()
     return redirect(url_for('homepage'))
 
 
